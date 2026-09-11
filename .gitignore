@@ -1,0 +1,64 @@
+# ============================================================
+# .gitignore — Python / PyTorch / YOLO / KLCN-2026
+# ============================================================
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+
+# === Virtual Environment ===
+.venv/
+venv/
+ENV/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Jupyter Notebook checkpoints ===
+.ipynb_checkpoints/
+
+# === Dữ liệu gốc, trung gian & đã xử lý (quá lớn cho Git, lưu trữ qua Drive/Zip) ===
+data/raw/
+data/interim/
+data/processed/
+
+# === Model weights & training outputs ===
+runs/
+artifacts/checkpoints/*.pt
+artifacts/checkpoints/*.pth
+artifacts/runs/
+
+# === Experiment outputs (weights, logs) ===
+experiments/*/runs/
+experiments/*/*.pt
+
+# === File nén dữ liệu ===
+*.tar.xz
+*.tar.gz
+*.zip
+
+# === Các file nhị phân lớn khác ===
+*.onnx
+*.engine
+*.tflite
+
+# === Chỉ push notebook(testing) ===
+# Bỏ qua tất cả trừ notebooks/
+/*
+!/notebooks/
+!.gitignore
+!README.md
