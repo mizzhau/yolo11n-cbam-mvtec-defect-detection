@@ -1,0 +1,7 @@
+path: data/processed/split_70_15_15_augmented
+train: images/train
+val: images/val
+test: images/test
+
+nc: 48
+names: ['bent', 'bent_lead', 'bent_wire', 'broken', 'broken_large', 'broken_small', 'broken_teeth', 'cable_swap', 'color', 'combined', 'contamination', 'crack', 'cut', 'cut_inner_insulation', 'cut_lead', 'cut_outer_insulation', 'damaged_case', 'defective', 'fabric_border', 'fabric_interior', 'faulty_imprint', 'flip', 'fold', 'glue', 'glue_strip', 'gray_stroke', 'hole', 'liquid', 'manipulated_front', 'metal_contamination', 'misplaced', 'missing_cable', 'missing_wire', 'oil', 'pill_type', 'poke', 'poke_insulation', 'print', 'rough', 'scratch', 'scratch_head', 'scratch_neck', 'split_teeth', 'squeeze', 'squeezed_teeth', 'thread', 'thread_side', 'thread_top']

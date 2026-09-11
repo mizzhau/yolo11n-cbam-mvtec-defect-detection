@@ -32,33 +32,29 @@ desktop.ini
 .ipynb_checkpoints/
 
 # === Dữ liệu gốc, trung gian & đã xử lý (quá lớn cho Git, lưu trữ qua Drive/Zip) ===
-data/raw/
-data/interim/
-data/processed/
+/data/
 
-# === Model weights & training outputs ===
+# === Model weights, runs & experiment outputs ===
 runs/
-artifacts/checkpoints/*.pt
-artifacts/checkpoints/*.pth
-artifacts/runs/
-
-# === Experiment outputs (weights, logs) ===
-experiments/*/runs/
-experiments/*/*.pt
+experiments/
+artifacts/
 
 # === File nén dữ liệu ===
 *.tar.xz
 *.tar.gz
 *.zip
+*.bin
+*.7z
+*.rar
 
 # === Các file nhị phân lớn khác ===
 *.onnx
 *.engine
 *.tflite
 
-# === Chỉ push notebook(testing) ===
-# Bỏ qua tất cả trừ notebooks/
-/*
-!/notebooks/
-!.gitignore
-!README.md
+# === Không push theo yêu cầu của User (Tests & Tài liệu điều phối) ===
+tests/
+docs/
+AGENTS.md
+.geminiignore
+.pytest_cache/
