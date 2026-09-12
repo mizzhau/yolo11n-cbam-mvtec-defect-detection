@@ -52,7 +52,7 @@ artifacts/
 *.engine
 *.tflite
 
-# === Không push theo yêu cầu của User (Tests & Tài liệu điều phối) ===
+# === Không push theo yêu ===
 tests/
 docs/
 AGENTS.md
