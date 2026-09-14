@@ -36,7 +36,8 @@ desktop.ini
 
 # === Model weights, runs & experiment outputs ===
 runs/
-experiments/
+experiments/*
+!experiments/testing/
 artifacts/
 
 # === File nén dữ liệu ===
