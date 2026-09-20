@@ -52,6 +52,7 @@ artifacts/
 *.onnx
 *.engine
 *.tflite
+*.pt
 
 # === Không push theo yêu ===
 tests/
