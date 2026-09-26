@@ -18,7 +18,11 @@ Pipeline (adapted from matthewkenely/mask-to-annotation, with fixes):
   7. Also copy "good" (defect-free) images with an EMPTY label file, so the
      model learns what a normal / no-defect image looks like.
   8. Write out a dataset-yolo_summary.csv with per-category / per-defect-type counts,
-     so you can inspect class balance before training.
+     so you can inspect class balance before training. Also flags (via a
+     'zero_box_defects' column + console warning) any defective image whose mask
+     had real defect pixels but ended up with an EMPTY label because every
+     connected component was filtered out by min_area_ratio -- review these
+     manually since they'd otherwise silently look like negative ("good") samples.
 
 Expected MVTec AD folder structure (after extracting the .tar.xz):
 
@@ -233,6 +237,17 @@ def process_defect_images(category, mvtec_root, output_images_dir, output_labels
             boxes = mask_to_boxes(mask, min_area_ratio=min_area_ratio)
             yolo_lines = boxes_to_yolo_lines(boxes, img_w, img_h, defect_type, class_to_id)
 
+            # The mask says this image has a real defect, but cleaning
+            # (blur+erode) + min_area_ratio filtering removed every
+            # component, so it would silently get an empty label like a
+            # "good" image. Flag it loudly instead of hiding the mismatch.
+            if not yolo_lines and cv2.countNonZero(mask) > 0:
+                print(f"  [WARNING] {category}/{defect_type}/{image_file}: mask has "
+                      f"defect pixels but all components were filtered out "
+                      f"(min_area_ratio={min_area_ratio}) -> label will be EMPTY. "
+                      f"Review this image manually.")
+                summary[(category, defect_type)]["zero_box_defects"] += 1
+
             # Unique flat filename: category_defecttype_basename
             out_stem = f"{category}_{defect_type}_{base_name}"
             out_image_path = os.path.join(output_images_dir, out_stem + ".png")
@@ -287,10 +302,17 @@ def write_summary_csv(summary, output_root):
     summary_path = os.path.join(output_root, "dataset-yolo_summary.csv")
     with open(summary_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["category", "defect_type", "num_images", "num_boxes"])
+        writer.writerow(["category", "defect_type", "num_images", "num_boxes", "zero_box_defects"])
         for (category, defect_type), counts in sorted(summary.items()):
-            writer.writerow([category, defect_type, counts["images"], counts["boxes"]])
+            writer.writerow([category, defect_type, counts["images"], counts["boxes"],
+                              counts["zero_box_defects"]])
     print(f"\nSummary written to: {summary_path}")
+
+    total_zero_box = sum(v["zero_box_defects"] for v in summary.values())
+    if total_zero_box:
+        print(f"[WARNING] {total_zero_box} defective image(s) ended up with an EMPTY "
+              f"label (mask had defect pixels, but all components were filtered out). "
+              f"See the 'zero_box_defects' column above and review those manually.")
 
 
 def write_classes_file(output_root, class_to_id):
@@ -362,7 +384,7 @@ def main():
     for name, idx in class_to_id.items():
         print(f"  {idx:3d} -> {name}")
 
-    summary = defaultdict(lambda: {"images": 0, "boxes": 0})
+    summary = defaultdict(lambda: {"images": 0, "boxes": 0, "zero_box_defects": 0})
 
     for category in categories:
         print(f"\nProcessing category: {category}")
