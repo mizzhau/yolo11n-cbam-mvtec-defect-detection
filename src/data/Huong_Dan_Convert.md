@@ -1,6 +1,6 @@
 # Hướng dẫn chạy Convert Mask → YOLO BBox
 
-Script: `scripts/mvtec_mask_to_yolo.py` + `scripts/verify_yolo_boxes.py`
+Script: `src/data/mvtec_mask_to_yolo.py` + `src/data/verify_yolo_boxes.py`
 
 ---
 
@@ -13,7 +13,7 @@ Script: `scripts/mvtec_mask_to_yolo.py` + `scripts/verify_yolo_boxes.py`
   ```
 - Dataset MVTec AD đã giải nén đầy đủ 15 category tại:
   ```
-  D:\Dataset__KLTN\mvtec_anomaly_detection\
+  data/raw/mvtec_anomaly_detection/
   ```
 
 ---
@@ -21,13 +21,13 @@ Script: `scripts/mvtec_mask_to_yolo.py` + `scripts/verify_yolo_boxes.py`
 ## 2. Chạy convert mask → bounding box (mvtec_mask_to_yolo.py)
 
 ```bash
-python scripts/mvtec_mask_to_yolo.py --mvtec_root "D:\Dataset__KLTN\mvtec_anomaly_detection" --output_root "D:\Dataset__KLTN\mvtec_yolo"
+python src/data/mvtec_mask_to_yolo.py --mvtec_root "data/raw/mvtec_anomaly_detection" --output_root "data/interim/mvtec_yolo"
 ```
 
 **Kết quả tạo ra:**
 
 ```
-D:\Dataset__KLTN\mvtec_yolo\
+data/interim/mvtec_yolo/
 ├── images/          # Ảnh gốc copy ra (đặt tên phẳng)
 ├── labels/          # File .txt YOLO format tương ứng
 ├── classes.txt      # Danh sách class (1 dòng = 1 tên defect)
@@ -52,10 +52,10 @@ D:\Dataset__KLTN\mvtec_yolo\
 Output ở bước 2 là **1 folder phẳng** (mọi category chung `images/` + `labels/`). Nếu bạn muốn upload lên Roboflow theo từng batch category (để gắn tag category lúc upload, dễ lọc/review sau này), chạy thêm:
 
 ```bash
-python scripts/split_by_category.py \
-  --flat_root "D:\Dataset__KLTN\mvtec_yolo" \
-  --mvtec_root "D:\Dataset__KLTN\mvtec_anomaly_detection" \
-  --dest_root "D:\Dataset__KLTN\mvtec_yolo_by_category"
+python src/data/split_by_category.py \
+  --flat_root "data/interim/mvtec_yolo" \
+  --mvtec_root "data/raw/mvtec_anomaly_detection" \
+  --dest_root "data/interim/mvtec_yolo_by_category"
 ```
 
 Kết quả: 15 folder con (1 folder / category), mỗi folder có `images/`, `labels/`, `classes.txt` (class ID **giữ nguyên toàn cục**, giống hệt nhau ở mọi category — không map lại riêng). File `dataset-yolo_summary.csv` cũng được copy vào thư mục gốc `--dest_root`.
@@ -72,10 +72,10 @@ Sau khi convert xong, kiểm tra trực quan xem bbox có khớp vùng lỗi kh�
 
 ```bash
 # Kiểm tra 1 ảnh cụ thể
-python scripts/verify_yolo_boxes.py --output_root "D:\Dataset__KLTN\mvtec_yolo" --stem bottle_broken_large_000
+python src/data/verify_yolo_boxes.py --output_root "data/interim/mvtec_yolo" --stem bottle_broken_large_000
 
 # Kiểm tra ngẫu nhiên 1 ảnh
-python scripts/verify_yolo_boxes.py --output_root "D:\Dataset__KLTN\mvtec_yolo"
+python src/data/verify_yolo_boxes.py --output_root "data/interim/mvtec_yolo"
 ```
 
 Ảnh kết quả vẽ bbox xanh lá lưu vào thư mục `verify_output/` (mặc định). Đổi thư mục lưu bằng `--save_dir`.
@@ -125,4 +125,4 @@ Nếu thêm category mới hoặc đổi tên folder, class mapping sẽ lệch.
 4. Trên Roboflow: review, tự vẽ thêm bbox cho các ảnh nằm trong `zero_box_defects` (xem CSV), sửa box nào bị lệch/hụt.
 5. Chỉ chia train/val/test **sau khi** đã sửa xong bbox trên Roboflow (lúc tạo Version để export) — không chia trước, vì tỉ lệ class có thể thay đổi sau khi sửa nhãn thủ công.
 
-> ⚠️ **Không chỉnh sửa dữ liệu gốc** trong `D:\Dataset__KLTN\mvtec_anomaly_detection\`. Output convert luôn ghi vào thư mục riêng (`--output_root` bạn chỉ định, ví dụ `D:\Dataset__KLTN\mvtec_yolo\`). Bản phẳng và bản chia theo category chứa **dữ liệu giống hệt nhau** — chỉ giữ 1 trong 2 bản nếu muốn tiết kiệm dung lượng.
+> ⚠️ **Không chỉnh sửa dữ liệu gốc** trong `data/raw/mvtec_anomaly_detection/`. Output convert luôn ghi vào thư mục riêng (`--output_root` bạn chỉ định, ví dụ `data/interim/mvtec_yolo/`). Bản phẳng và bản chia theo category chứa **dữ liệu giống hệt nhau** — chỉ giữ 1 trong 2 bản nếu muốn tiết kiệm dung lượng.
