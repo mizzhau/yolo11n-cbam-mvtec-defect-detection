@@ -10,6 +10,8 @@ Nguồn: `configs/aug_policy.yaml`, `configs/train_main.yaml`, `default.yaml` c�
 
 Mỗi ảnh augment dùng tối đa 1 phép hình học (ngoài lật) và tối đa 2 phép quang học, chọn trong các phép bên dưới. Không dùng grayscale và hue (sẽ làm sai ý nghĩa các lỗi về màu).
 
+**Bối cảnh cân bằng good/lỗi.** Dữ liệu gốc lệch 3,25:1 (4094 good / 1260 lỗi). Chỉ tập train được cân bằng lại: ảnh good giảm còn bằng số ảnh lỗi gốc của từng category (R = 1), ảnh lỗi được thêm bản augment offline (khoảng +30%), nên good còn khoảng 43% tập train. Ảnh good không bị augment offline. Val/test giữ nguyên tỷ lệ gốc (khoảng 3,2:1) để đánh giá gần thực tế.
+
 ### bottle
 
 - Lật ngang (flip ngang): bật
