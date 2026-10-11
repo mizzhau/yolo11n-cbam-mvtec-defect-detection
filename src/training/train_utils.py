@@ -49,14 +49,41 @@ AUG_PROFILES: Dict[str, Dict[str, Any]] = {
 }
 
 
-def check_overwrite_safety(project: str, name: str, overwrite: bool) -> None:
-    """Ngăn chặn ghi đè ngoài ý muốn khi checkpoint best.pt đã tồn tại."""
-    best_checkpoint = Path(project) / name / "weights" / "best.pt"
+def check_overwrite_safety(
+    project: str,
+    name: str,
+    overwrite: bool = False,
+    resume: bool = False
+) -> None:
+    """Kiểm tra an toàn ghi đè và hỗ trợ chế độ tiếp tục (resume) huấn luyện."""
+    run_dir = Path(project) / name
+    last_checkpoint = run_dir / "weights" / "last.pt"
+    best_checkpoint = run_dir / "weights" / "best.pt"
+
+    if resume:
+        if not last_checkpoint.exists():
+            raise SystemExit(
+                f"❌ LỖI RESUME: Không tìm thấy checkpoint 'last.pt' tại:\n"
+                f"   {last_checkpoint.resolve()}\n"
+                f"👉 Kiểm tra lại thư mục chạy '{name}' hoặc bỏ cờ '--resume' để huấn luyện từ đầu."
+            )
+        print(f"🔄 CHẾ ĐỘ RESUME: Tìm thấy checkpoint tại {last_checkpoint.resolve()}")
+        return
+
     if best_checkpoint.exists() and not overwrite:
         raise SystemExit(
             f"❌ LỖI AN TOÀN: Run '{name}' đã có checkpoint hoàn tất tại:\n"
             f"   {best_checkpoint.resolve()}\n"
-            f"👉 Thêm tham số '--overwrite' nếu bạn thực sự muốn chạy lại và ghi đè kết quả."
+            f"👉 Thêm tham số '--overwrite' nếu bạn thực sự muốn chạy lại từ đầu, "
+            f"hoặc dùng '--resume' để tiếp tục."
+        )
+
+    if last_checkpoint.exists() and not overwrite:
+        raise SystemExit(
+            f"❌ LỖI AN TOÀN: Run '{name}' đã có checkpoint dở dang tại:\n"
+            f"   {last_checkpoint.resolve()}\n"
+            f"👉 Dùng cờ '--resume' để tiếp tục từ điểm ngắt, "
+            f"hoặc '--overwrite' nếu muốn xóa và chạy lại từ đầu."
         )
 
 
@@ -87,5 +114,7 @@ def verify_args_yaml(save_dir: Path, aug_profile: str) -> bool:
             print(f"   - {param}: thực tế={act} | kỳ vọng={exp}")
         return False
 
-    print(f"✅ Đối soát thành công: Toàn bộ tham số trong args.yaml khớp 100% profile '{aug_profile}'!")
+    print(
+        f"✅ Đối soát thành công: Toàn bộ tham số trong args.yaml khớp 100% profile '{aug_profile}'!"
+    )
     return True

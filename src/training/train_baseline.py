@@ -25,6 +25,7 @@ def train_baseline(
     name: str = "baseline",
     aug_profile: str = "v2",
     overwrite: bool = False,
+    resume: bool = False,
     drive_backup: str = "",
     device: str = "",
     seed: int = 42,
@@ -32,13 +33,15 @@ def train_baseline(
 ) -> None:
     from ultralytics import YOLO
 
-    check_overwrite_safety(project=project, name=name, overwrite=overwrite)
+    check_overwrite_safety(project=project, name=name, overwrite=overwrite, resume=resume)
 
     if aug_profile not in AUG_PROFILES:
         raise ValueError(
             f"Augmentation profile '{aug_profile}' không hợp lệ. "
             f"Chọn một trong: {list(AUG_PROFILES.keys())}"
         )
+
+    last_ckpt = Path(project) / name / "weights" / "last.pt"
 
     print("=" * 70)
     print(" KHỞI CHẠY HUẤN LUYỆN: YOLO11n BASELINE")
@@ -51,35 +54,44 @@ def train_baseline(
     print(f" - Aug profile:   {aug_profile}")
     print(f" - Save period:   {save_period} (Lưu checkpoint mỗi {save_period} epoch)")
     print(f" - Project dir:   {project}/{name}")
+    print(f" - Resume mode:   {resume}")
     print("=" * 70)
 
-    model = YOLO(model_cfg)
+    if resume and last_ckpt.exists():
+        print(f"🔄 Đang tiếp tục huấn luyện từ checkpoint: {last_ckpt.resolve()}")
+        model = YOLO(str(last_ckpt))
+        train_kwargs = {"resume": True}
+        if device:
+            train_kwargs["device"] = device
+        results = model.train(**train_kwargs)
+    else:
+        model = YOLO(model_cfg)
+        train_kwargs = {
+            "data": data_yaml,
+            "epochs": epochs,
+            "batch": batch_size,
+            "imgsz": img_size,
+            "fraction": fraction,
+            "optimizer": "AdamW",
+            "lr0": 0.001,
+            "lrf": 0.01,
+            "weight_decay": 0.0005,
+            "warmup_epochs": 2.0,
+            "save": True,
+            "save_period": save_period,
+            "project": project,
+            "name": name,
+            "seed": seed,
+            "plots": True,
+            "exist_ok": True,
+        }
+        train_kwargs.update(AUG_PROFILES[aug_profile])
 
-    train_kwargs = {
-        "data": data_yaml,
-        "epochs": epochs,
-        "batch": batch_size,
-        "imgsz": img_size,
-        "fraction": fraction,
-        "optimizer": "AdamW",
-        "lr0": 0.001,
-        "lrf": 0.01,
-        "weight_decay": 0.0005,
-        "warmup_epochs": 2.0,
-        "save": True,
-        "save_period": save_period,
-        "project": project,
-        "name": name,
-        "seed": seed,
-        "plots": True,
-        "exist_ok": True,
-    }
-    train_kwargs.update(AUG_PROFILES[aug_profile])
+        if device:
+            train_kwargs["device"] = device
 
-    if device:
-        train_kwargs["device"] = device
+        results = model.train(**train_kwargs)
 
-    results = model.train(**train_kwargs)
     print("Hoàn tất huấn luyện Baseline!")
 
     save_dir = Path(getattr(model.trainer, "save_dir", Path(project) / name))
@@ -109,8 +121,9 @@ def main() -> None:
     parser.add_argument("--model", type=str, default="configs/models/yolo11n_baseline.yaml")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch", type=int, default=16)
-    parser.add_argument("--imgsz", type=int, default=640)
-    parser.add_argument("--save_period", type=int, default=10, help="Lưu checkpoint sau mỗi N epochs")
+    parser.add_argument(
+        "--save_period", type=int, default=10, help="Lưu checkpoint sau mỗi N epochs"
+    )
     parser.add_argument("--project", type=str, default="experiments/baseline")
     parser.add_argument("--name", type=str, default="baseline")
     parser.add_argument(
@@ -125,10 +138,19 @@ def main() -> None:
         action="store_true",
         help="Cho phép ghi đè nếu checkpoint best.pt đã tồn tại"
     )
-    parser.add_argument("--drive_backup", type=str, default="", help="Đường dẫn sao lưu Google Drive")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Tiếp tục huấn luyện từ checkpoint last.pt đã tồn tại"
+    )
+    parser.add_argument(
+        "--drive_backup", type=str, default="", help="Đường dẫn sao lưu Google Drive"
+    )
     parser.add_argument("--device", type=str, default="")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--fraction", type=float, default=1.0, help="Tỷ lệ dataset (0.01 = 1%%)")
+    parser.add_argument(
+        "--fraction", type=float, default=1.0, help="Tỷ lệ dataset (0.01 = 1%%)"
+    )
     args = parser.parse_args()
 
     train_baseline(
@@ -142,6 +164,7 @@ def main() -> None:
         name=args.name,
         aug_profile=args.aug_profile,
         overwrite=args.overwrite,
+        resume=args.resume,
         drive_backup=args.drive_backup,
         device=args.device,
         seed=args.seed,

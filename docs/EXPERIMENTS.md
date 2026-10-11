@@ -134,3 +134,25 @@
 | **Exp 2 (Neck)** | `experiments/testing/03-backbone_neck_head_neckNhead-100/cbam_neck/confusion_matrix_normalized.png` | Precision cao ở các khuyết tật trung bình |
 | **Exp 3 (Neck+Head)** | `experiments/testing/03-backbone_neck_head_neckNhead-100/cbam_neck_head/confusion_matrix_normalized.png` | Giảm mạnh tỷ lệ bỏ sót lỗi (False Negative) |
 | **Exp 4 (Head)** | `experiments/testing/03-backbone_neck_head_neckNhead-100/cbam_head/confusion_matrix_normalized.png` | Cải thiện Recall nhưng còn False Positive |
+
+---
+
+## §7. Các Phân Tích Trực Quan Hóa Nên Thực Hiện Để Minh Chứng Tính Tốt Hơn Của Các Mô Hình
+
+* **Bản đồ nhiệt Grad-CAM (Quan trọng nhất):**
+  * **Cách làm:** Xuất Heatmap kích hoạt lớp đặc trưng của Baseline vs YOLO11n + CBAM.
+  * **Minh chứng:** Chứng minh CBAM hội tụ điểm nhìn chính xác vào vùng khuyết tật (vết nứt, xước, biến dạng), trong khi Baseline bị phân tán vào nền (background).
+
+* **So sánh ảnh dự đoán thực tế (Side-by-Side Bounding Box):**
+  * **Cách làm:** Đặt 3 khung ảnh cạnh nhau: Ground Truth | Baseline | YOLO11n + CBAM.
+  * **Minh chứng:** Lựa chọn các ca khó (lỗi nhỏ, độ tương phản thấp) để chỉ ra các trường hợp Baseline bị lọt lỗi (False Negative) nhưng CBAM bắt trọn, hoặc BBox của CBAM ôm khít lỗi hơn.
+
+* **Confusion Matrix (Ma trận nhầm lẫn chuẩn hóa):**
+  * **Minh chứng:** Thấy trực quan tỷ lệ nhận diện đúng từng loại khuyết tật và tỷ lệ nhầm sang background/lớp khác.
+
+* **Biểu đồ đường cong Precision-Recall (PR Curve) & F1-Confidence:**
+  * **Minh chứng:** Thể hiện sự ổn định và độ bao phủ của mô hình ở mọi ngưỡng tin cậy (Confidence threshold).
+
+* **Biểu đồ cột so sánh Per-Category / Per-Defect AP (15 danh mục MVTec):**
+  * **Minh chứng:** Chỉ ra CBAM vượt trội rõ rệt nhất ở nhóm sản phẩm/vật liệu nào (ví dụ: Texture như leather, carpet hay Object như transistor, screw).
+

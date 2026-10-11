@@ -725,11 +725,9 @@ def save_summary_tables(summary_df: pd.DataFrame, output_dir: Path, title: str) 
         f.write("\n")
 
 def plot_overall_ablation_summary(
-
     eval_root: Path,
-
-    overall_data: List[Dict[str, any]]
-
+    overall_data: List[Dict[str, any]],
+    max_epochs: int = 100
 ) -> None:
 
     """Vẽ biểu đồ tổng hợp toàn diện Ablation Study so sánh đồng thời tất cả các mô hình."""
@@ -838,8 +836,7 @@ def plot_overall_ablation_summary(
 
     ax.set_ylabel("Evaluation Score", fontsize=12, fontweight="bold")
 
-    ax.set_title("Overall Ablation Study Performance Comparison (100 Epochs)",
-
+    ax.set_title(f"Overall Ablation Study Performance Comparison ({max_epochs} Epochs)",
                  fontsize=14, fontweight="bold", pad=15)
 
     ax.set_ylim(0, 1.08)
@@ -878,7 +875,7 @@ def plot_overall_ablation_summary(
 
     with open(md_path, "w", encoding="utf-8") as f:
 
-        f.write("# Bảng Tổng Hợp Ablation Study Toàn Diện (100 Epochs)\n\n")
+        f.write(f"# Bảng Tổng Hợp Ablation Study Toàn Diện ({max_epochs} Epochs)\n\n")
 
         f.write("| Model | CBAM Position | mAP@0.5 | mAP@0.5:0.95 | Precision | Recall | F1-Score | Best Epoch |\n")
 
@@ -1033,8 +1030,11 @@ def process_all_comparisons(
                                                    
 
     overall_list = []
+    total_epochs = 0
 
     if base_df is not None:
+        if "epoch" in base_df.columns:
+            total_epochs = max(total_epochs, int(base_df["epoch"].max()))
 
                                                                              
 
@@ -1109,6 +1109,8 @@ def process_all_comparisons(
             continue
 
         cbam_df = load_ultralytics_results(cbam_csv)
+        if "epoch" in cbam_df.columns:
+            total_epochs = max(total_epochs, int(cbam_df["epoch"].max()))
 
                                                                     
 
@@ -1211,17 +1213,22 @@ def process_all_comparisons(
         })
 
                                                      
-    if overall_list:
-        plot_overall_ablation_summary(eval_dir, overall_list)
+    if total_epochs <= 0:
+        total_epochs = 100
 
-                                                                                    
-    plot_overall_learning_curves_map50(base_dir, eval_dir, comparisons, baseline_csv=baseline_csv)
+    if overall_list:
+        plot_overall_ablation_summary(eval_dir, overall_list, max_epochs=total_epochs)
+
+    plot_overall_learning_curves_map50(
+        base_dir, eval_dir, comparisons, baseline_csv=baseline_csv, max_epochs=total_epochs
+    )
 
 def plot_overall_learning_curves_map50(
     base_dir: Path,
     eval_dir: Path,
     comparisons: List[Dict[str, str]],
-    baseline_csv: Optional[Path] = None
+    baseline_csv: Optional[Path] = None,
+    max_epochs: int = 100
 ) -> None:
     """Vẽ đường cong mAP@0.5 của tất cả các mô hình trên cùng 1 biểu đồ duy nhất."""
     fig, ax = plt.subplots(figsize=(12, 6.5))
@@ -1322,8 +1329,7 @@ def plot_overall_learning_curves_map50(
 
         )
 
-    ax.set_title(r"Ablation Study Convergence Dynamics: Validation $\text{mAP}_{50}$ over 100 Epochs",
-
+    ax.set_title(rf"Ablation Study Convergence Dynamics: Validation $\text{{mAP}}_{{50}}$ over {max_epochs} Epochs",
                  fontsize=13, fontweight="bold", pad=12)
 
     ax.set_xlabel("Training Epochs", fontsize=11.5, fontweight="bold")

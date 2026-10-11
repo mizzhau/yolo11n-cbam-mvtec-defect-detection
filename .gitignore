@@ -33,6 +33,7 @@ desktop.ini
 
 # === Dữ liệu gốc, trung gian & đã xử lý (quá lớn cho Git, lưu trữ qua Drive/Zip) ===
 /data/
+gdrive/
 
 # === Model weights, runs & experiment outputs ===
 runs/
