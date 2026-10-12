@@ -8,6 +8,11 @@ from typing import Any, Dict
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import torch
 
 from src.models.cbam import register_cbam_to_ultralytics
@@ -140,7 +145,9 @@ def benchmark_model(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Đo đạc độ trễ suy luận, FPS, Params và F1-Score của mô hình YOLO.")
+    parser = argparse.ArgumentParser(
+        description="Đo đạc độ trễ suy luận, FPS, Params và F1-Score của mô hình YOLO."
+    )
     parser.add_argument("--weights", type=str, required=True, help="Đường dẫn file best.pt")
     parser.add_argument("--data", type=str, required=True, help="Đường dẫn file data yaml")
     parser.add_argument("--imgsz", type=int, default=640)
@@ -148,7 +155,9 @@ def main() -> None:
     parser.add_argument("--warmup", type=int, default=10)
     parser.add_argument("--runs", type=int, default=100)
     parser.add_argument("--device", type=str, default="")
-    parser.add_argument("--out", type=str, default="", help="Đường dẫn file xuất kết quả (.json hoặc .md)")
+    parser.add_argument(
+        "--out", type=str, default="", help="Đường dẫn file xuất kết quả (.json hoặc .md)"
+    )
     args = parser.parse_args()
 
     benchmark_model(

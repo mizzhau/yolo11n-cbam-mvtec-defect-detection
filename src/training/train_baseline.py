@@ -121,6 +121,7 @@ def main() -> None:
     parser.add_argument("--model", type=str, default="configs/models/yolo11n_baseline.yaml")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument(
         "--save_period", type=int, default=10, help="Lưu checkpoint sau mỗi N epochs"
     )

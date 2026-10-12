@@ -9,6 +9,11 @@ import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from src.models.cbam import register_cbam_to_ultralytics
 from src.inference.gradcam_core import compute_gradcam, stratified_sample_images
 
