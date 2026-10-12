@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "Phạm Nguyễn Minh Hậu", email = "hau@example.com" },
-    { name = "Phan Minh Trí", email = "tri@example.com" },
-    { name = "Lê Thị Trà My", email = "my@example.com" },
+    { name = "Phạm Nguyễn Minh Hậu", email = "minhhau05.st@gmail.com" },
+    { name = "Phan Minh Trí", email = "..." },
+    { name = "Lê Thị Trà My", email = "..." },
 ]
 
 [project.optional-dependencies]
