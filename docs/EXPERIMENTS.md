@@ -55,15 +55,15 @@
 | Tham số | Giá trị |
 |:---|:---|
 | Input size | 640 × 640 (letterbox) |
-| Epochs | 300 (early stopping patience = 50) |
+| Epochs | 200 (early stopping patience = 50) |
 | Batch size | 16 |
-| Optimizer | AdamW, lr₀ = 0.001, weight_decay = 0.0005 |
-| LR Scheduler | Cosine annealing |
-| Augmentation | Mosaic (p=1.0), Flip H/V, HSV jitter, Scale ±50% |
-| Loss | Focal Loss (cls) + CIoU (bbox) |
+| Optimizer | AdamW, lr₀ = 0.001, lrf = 0.01, weight_decay = 0.0005, warmup_epochs = 2.0 |
+| LR Scheduler | Cosine annealing (`cos_lr: True`) |
+| Augmentation | Profile `v2` (Mosaic 0.5, close_mosaic 10, Flip H/V 0.0, Scale ±10%, HSV-V 0.15) |
+| Loss | BCEWithLogitsLoss (cls) + CIoU & DFL (bbox regression) |
 | Seed | 42 |
 | Train/Val/Test | 70 / 15 / 15 — stratified theo class |
-| Dataset | Cùng 1 bộ data đã clean |
+| Dataset | Cùng 1 bộ data đã chuẩn hóa (Dataset V2) |
 
 ---
 

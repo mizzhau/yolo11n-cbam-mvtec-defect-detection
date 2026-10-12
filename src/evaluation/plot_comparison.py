@@ -133,11 +133,15 @@ def plot_learning_curves(
 ) -> None:
 
     """Vẽ biểu đồ quá trình học (Learning Curves) gồm 4 subplots chuẩn khoa học."""
+    if len(base_df) != len(cbam_df):
+        print(
+            f"⚠️ CẢNH BÁO LỆCH EPOCHS: {base_label} ({len(base_df)} eps) vs "
+            f"{cbam_label} ({len(cbam_df)} eps). Vi phạm nguyên tắc Fair Comparison!"
+        )
 
     fig, axes = plt.subplots(2, 2, figsize=(13, 9))
 
     epoch_base = base_df["epoch"]
-
     epoch_cbam = cbam_df["epoch"]
 
                                     
@@ -552,6 +556,18 @@ def plot_metrics_comparison_bar(
 
     print(f"-> Đã lưu biểu đồ Metrics Bar chuẩn khoa học: {output_path}")
 
+def get_best_fitness_idx(df: pd.DataFrame) -> int:
+    """Xác định epoch tối ưu theo công thức Fitness chuẩn Ultralytics: 0.1*mAP50 + 0.9*mAP50-95."""
+    col_map50 = "metrics/mAP50(B)"
+    col_map5095 = "metrics/mAP50-95(B)"
+    if col_map50 in df.columns and col_map5095 in df.columns:
+        fitness = 0.1 * df[col_map50] + 0.9 * df[col_map5095]
+        return int(fitness.idxmax())
+    elif col_map50 in df.columns:
+        return int(df[col_map50].idxmax())
+    return max(0, len(df) - 1)
+
+
 def build_or_update_summary_df(
 
     existing_csv: Optional[Path],
@@ -642,14 +658,10 @@ def build_or_update_summary_df(
 
                                                                             
 
-    col_map50 = "metrics/mAP50(B)"
-
-    base_idx = base_df[col_map50].idxmax() if col_map50 in base_df.columns else len(base_df) - 1
-
-    cbam_idx = cbam_df[col_map50].idxmax() if col_map50 in cbam_df.columns else len(cbam_df) - 1
+    base_idx = get_best_fitness_idx(base_df)
+    cbam_idx = get_best_fitness_idx(cbam_df)
 
     base_row = base_df.iloc[base_idx]
-
     cbam_row = cbam_df.iloc[cbam_idx]
 
     b_p = float(base_row.get("metrics/precision(B)", 0.0))
@@ -1038,9 +1050,7 @@ def process_all_comparisons(
 
                                                                              
 
-        col_map50 = "metrics/mAP50(B)"
-
-        base_idx = int(base_df[col_map50].idxmax()) if col_map50 in base_df.columns else len(base_df) - 1
+        base_idx = get_best_fitness_idx(base_df)
 
         base_row = base_df.iloc[base_idx]
 
@@ -1114,9 +1124,7 @@ def process_all_comparisons(
 
                                                                     
 
-        cbam_col_map50 = "metrics/mAP50(B)"
-
-        cbam_idx = int(cbam_df[cbam_col_map50].idxmax()) if cbam_col_map50 in cbam_df.columns else len(cbam_df) - 1
+        cbam_idx = get_best_fitness_idx(cbam_df)
 
         cbam_row = cbam_df.iloc[cbam_idx]
 
@@ -1419,8 +1427,11 @@ def main() -> None:
         return
 
                                            
-
-    base_dir = Path(args.base_dir or "experiments/testing/03-backbone_neck_head_neckNhead-100")
+    default_dir = "experiments/testing/03-backbone_neck_head_neckNhead-100"
+    if not args.base_dir:
+        base_dir = Path(default_dir) if Path(default_dir).exists() else Path("experiments/testing/02-100_epochs")
+    else:
+        base_dir = Path(args.base_dir)
 
     eval_dir = Path(args.eval_dir or str(base_dir / "full_evaluation"))
 

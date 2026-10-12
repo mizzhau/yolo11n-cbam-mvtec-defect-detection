@@ -1,6 +1,8 @@
+import shutil
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 import yaml
+import pandas as pd
 
 AUG_PROFILES: Dict[str, Dict[str, Any]] = {
     "v2": {
@@ -49,6 +51,24 @@ AUG_PROFILES: Dict[str, Dict[str, Any]] = {
 }
 
 
+def get_run_epoch_progress(project: str, name: str) -> Tuple[int, bool, bool]:
+    """Kiểm tra tiến độ thực tế của một run: (số epoch hoàn thành, có last.pt, có best.pt)."""
+    run_dir = Path(project) / name
+    csv_file = run_dir / "results.csv"
+    last_ckpt = run_dir / "weights" / "last.pt"
+    best_ckpt = run_dir / "weights" / "best.pt"
+
+    completed_epochs = 0
+    if csv_file.exists():
+        try:
+            df = pd.read_csv(csv_file)
+            completed_epochs = len(df)
+        except Exception:
+            completed_epochs = 0
+
+    return completed_epochs, last_ckpt.exists(), best_ckpt.exists()
+
+
 def check_overwrite_safety(
     project: str,
     name: str,
@@ -68,6 +88,12 @@ def check_overwrite_safety(
                 f"👉 Kiểm tra lại thư mục chạy '{name}' hoặc bỏ cờ '--resume' để huấn luyện từ đầu."
             )
         print(f"🔄 CHẾ ĐỘ RESUME: Tìm thấy checkpoint tại {last_checkpoint.resolve()}")
+        return
+
+    if overwrite:
+        if run_dir.exists():
+            print(f"⚠️ CỜ OVERWRITE: Đang dọn dẹp thư mục chạy cũ {run_dir.resolve()}...")
+            shutil.rmtree(run_dir)
         return
 
     if best_checkpoint.exists() and not overwrite:

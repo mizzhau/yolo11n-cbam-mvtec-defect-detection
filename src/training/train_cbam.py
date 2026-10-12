@@ -21,6 +21,8 @@ def train_cbam(
     epochs: int = 100,
     batch_size: int = 16,
     img_size: int = 640,
+    patience: int = 50,
+    cos_lr: bool = True,
     save_period: int = 10,
     project: str = "experiments/cbam",
     name: str = "cbam_backbone",
@@ -73,6 +75,8 @@ def train_cbam(
             "epochs": epochs,
             "batch": batch_size,
             "imgsz": img_size,
+            "patience": patience,
+            "cos_lr": cos_lr,
             "fraction": fraction,
             "optimizer": "AdamW",
             "lr0": 0.001,
@@ -128,6 +132,10 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch", type=int, default=16)
     parser.add_argument("--imgsz", type=int, default=640)
+    parser.add_argument("--patience", type=int, default=50, help="Patience cho early stopping")
+    parser.add_argument(
+        "--no_cos_lr", action="store_true", help="Tắt Cosine Annealing (mặc định BẬT)"
+    )
     parser.add_argument(
         "--save_period", type=int, default=10, help="Lưu checkpoint sau mỗi N epochs"
     )
@@ -166,6 +174,8 @@ def main() -> None:
         epochs=args.epochs,
         batch_size=args.batch,
         img_size=args.imgsz,
+        patience=args.patience,
+        cos_lr=not args.no_cos_lr,
         save_period=args.save_period,
         project=args.project,
         name=args.name,
