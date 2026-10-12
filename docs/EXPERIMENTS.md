@@ -55,10 +55,10 @@
 | Tham số | Giá trị |
 |:---|:---|
 | Input size | 640 × 640 (letterbox) |
-| Epochs | 200 (early stopping patience = 50) |
+| Epochs | 200 (early stopping patience = 100) |
 | Batch size | 16 |
 | Optimizer | AdamW, lr₀ = 0.001, lrf = 0.01, weight_decay = 0.0005, warmup_epochs = 2.0 |
-| LR Scheduler | Cosine annealing (`cos_lr: True`) |
+| LR Scheduler | Linear decay (`cos_lr: False`) |
 | Augmentation | Profile `v2` (Mosaic 0.5, close_mosaic 10, Flip H/V 0.0, Scale ±10%, HSV-V 0.15) |
 | Loss | BCEWithLogitsLoss (cls) + CIoU & DFL (bbox regression) |
 | Seed | 42 |
