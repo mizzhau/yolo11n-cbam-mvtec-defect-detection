@@ -92,8 +92,14 @@ def check_overwrite_safety(
 
     if overwrite:
         if run_dir.exists():
-            print(f"⚠️ CỜ OVERWRITE: Đang dọn dẹp thư mục chạy cũ {run_dir.resolve()}...")
-            shutil.rmtree(run_dir)
+            print(f"⚠️ CỜ OVERWRITE: Đang dọn dẹp weights/ và logs cũ của run '{name}'...")
+            weights_dir = run_dir / "weights"
+            if weights_dir.exists():
+                shutil.rmtree(weights_dir)
+            for fname in ("results.csv", "args.yaml"):
+                target_f = run_dir / fname
+                if target_f.exists():
+                    target_f.unlink()
         return
 
     if best_checkpoint.exists() and not overwrite:
@@ -113,8 +119,12 @@ def check_overwrite_safety(
         )
 
 
-def verify_args_yaml(save_dir: Path, aug_profile: str) -> bool:
-    """Đối soát args.yaml thực tế được Ultralytics lưu với cấu hình profile kỳ vọng."""
+def verify_args_yaml(
+    save_dir: Path,
+    aug_profile: str,
+    expected_train_args: Optional[Dict[str, Any]] = None
+) -> bool:
+    """Đối soát args.yaml thực tế được Ultralytics lưu với profile và training args kỳ vọng."""
     args_file = Path(save_dir) / "args.yaml"
     if not args_file.exists():
         print(f"⚠️ Cảnh báo: Không tìm thấy {args_file} để đối soát tham số.")
@@ -123,7 +133,7 @@ def verify_args_yaml(save_dir: Path, aug_profile: str) -> bool:
     with open(args_file, "r", encoding="utf-8") as f:
         actual_args = yaml.safe_load(f) or {}
 
-    expected_cfg = AUG_PROFILES.get(aug_profile, {})
+    expected_cfg = {**AUG_PROFILES.get(aug_profile, {}), **(expected_train_args or {})}
     mismatches: Dict[str, Tuple[Any, Any]] = {}
 
     for param, expected_val in expected_cfg.items():
@@ -135,12 +145,12 @@ def verify_args_yaml(save_dir: Path, aug_profile: str) -> bool:
             mismatches[param] = (actual_val, expected_val)
 
     if mismatches:
-        print(f"❌ CẢNH BÁO: args.yaml của YOLO không khớp hoàn toàn với profile '{aug_profile}':")
+        print(f"❌ CẢNH BÁO: args.yaml của YOLO không khớp hoàn toàn với cấu hình kỳ vọng:")
         for param, (act, exp) in mismatches.items():
             print(f"   - {param}: thực tế={act} | kỳ vọng={exp}")
         return False
 
     print(
-        f"✅ Đối soát thành công: Toàn bộ tham số trong args.yaml khớp 100% profile '{aug_profile}'!"
+        f"✅ Đối soát thành công: Toàn bộ tham số trong args.yaml khớp 100% cấu hình kỳ vọng (profile '{aug_profile}')!"
     )
     return True

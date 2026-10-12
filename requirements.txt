@@ -4,7 +4,7 @@ torchvision>=0.15.0
 torchaudio>=2.0.0
 
 # === YOLO Framework ===
-ultralytics>=8.2.0
+ultralytics==8.3.253
 
 # === Computer Vision & Image Processing ===
 opencv-python>=4.8.0

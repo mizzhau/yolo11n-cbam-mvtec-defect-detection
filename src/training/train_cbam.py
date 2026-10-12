@@ -21,8 +21,8 @@ def train_cbam(
     epochs: int = 100,
     batch_size: int = 16,
     img_size: int = 640,
-    patience: int = 50,
-    cos_lr: bool = True,
+    patience: int = 100,
+    cos_lr: bool = False,
     save_period: int = 10,
     project: str = "experiments/cbam",
     name: str = "cbam_backbone",
@@ -100,7 +100,11 @@ def train_cbam(
     print("Hoàn tất huấn luyện YOLO11n + CBAM!")
 
     save_dir = Path(getattr(model.trainer, "save_dir", Path(project) / name))
-    verify_args_yaml(save_dir, aug_profile)
+    verify_args_yaml(
+        save_dir=save_dir,
+        aug_profile=aug_profile,
+        expected_train_args={"patience": patience, "cos_lr": cos_lr}
+    )
 
     if drive_backup:
         backup_path = Path(drive_backup)
@@ -132,9 +136,17 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch", type=int, default=16)
     parser.add_argument("--imgsz", type=int, default=640)
-    parser.add_argument("--patience", type=int, default=50, help="Patience cho early stopping")
     parser.add_argument(
-        "--no_cos_lr", action="store_true", help="Tắt Cosine Annealing (mặc định BẬT)"
+        "--patience",
+        type=int,
+        default=100,
+        help="Early stopping patience (default: 100, khớp baseline 10/10)"
+    )
+    parser.add_argument(
+        "--cos_lr",
+        action="store_true",
+        default=False,
+        help="Bật Cosine Annealing LR (mặc định TẮT để khớp baseline 10/10)"
     )
     parser.add_argument(
         "--save_period", type=int, default=10, help="Lưu checkpoint sau mỗi N epochs"
@@ -175,7 +187,7 @@ def main() -> None:
         batch_size=args.batch,
         img_size=args.imgsz,
         patience=args.patience,
-        cos_lr=not args.no_cos_lr,
+        cos_lr=args.cos_lr,
         save_period=args.save_period,
         project=args.project,
         name=args.name,
